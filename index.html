@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash point</title>
+<meta name="theme-color" content="#b8f5d0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calme, exact, un outil de caisse qu'on remplit le dimanche
+   IDEA: le ticket de caisse hebdomadaire
+   PICTURE: le ticket qui se calcule en direct à côté du formulaire
+   COLOUR+TYPE: noir et blanc + un champ menthe ; Space Grotesk 700 + Inter
+   LAYOUT: bandeau menthe (capital, bonus du mois), onglets, formulaire | ticket */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#0b0b0b);--ink:light-dark(#111,#f1f1f1);--mute:light-dark(#5f6368,#9aa0a6);--line:light-dark(#e3e3e3,#262626);--field:light-dark(#b8f5d0,#0b0b0b);--fink:light-dark(#0b0b0b,#b8f5d0);--card:light-dark(#fff,#141414);--bad:light-dark(#c0262d,#ff7b7b);--good:light-dark(#0b7a43,#b8f5d0);--warn:light-dark(#8a5a00,#ffd27a);--chip:light-dark(#f2f2f2,#1d1d1d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,4vw,48px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--field);color:var(--fink);border-bottom:1px solid var(--line)}
+.top h1{font:700 17px "Space Grotesk",sans-serif;margin:0 0 14px}
+.top .row{display:flex;flex-wrap:wrap;gap:18px 44px;align-items:flex-end;justify-content:space-between}
+.top small{display:block;font-size:14px;opacity:.8}
+.big{font:700 clamp(34px,9vw,52px)/1.05 "Space Grotesk",sans-serif;white-space:nowrap}
+.kp{display:flex;gap:14px 28px;flex-wrap:wrap}
+.kp b{display:block;font:700 22px "Space Grotesk",sans-serif;white-space:nowrap}
+.kp div{font-size:14px}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px max(5vw,16px);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+nav button{flex:none}
+button{font:600 15px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button[aria-pressed=true],button.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #3fbf7f;outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:32px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.ticket{position:static!important}}
+fieldset{border:0;padding:0;margin:0 0 20px}
+legend{font:700 15px "Space Grotesk",sans-serif;margin-bottom:8px;padding:0}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:14px;color:var(--mute)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+input,select,textarea{display:block;width:100%;margin-top:4px;font:500 16px Inter,sans-serif;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+input.n{text-align:right;font-variant-numeric:tabular-nums}
+input[readonly]{background:var(--chip)}
+.ticket{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 20px 24px;font-variant-numeric:tabular-nums;box-shadow:0 12px 30px -18px rgba(0,0,0,.4);position:sticky;top:80px}
+.ticket h2{font:700 16px "Space Grotesk",sans-serif;margin:0 0 2px}
+.tl{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:15px}
+.tl span:last-child{white-space:nowrap;text-align:right}
+.tl.sum{border-top:1px dashed var(--mute);margin-top:6px;padding-top:8px;font-weight:600}
+.tl.res{font:700 20px "Space Grotesk",sans-serif}
+.mute{color:var(--mute);font-size:14px}
+.bad{color:var(--bad)}.good{color:var(--good)}.warn{color:var(--warn)}
+.alerts{margin:12px 0 0;padding:0;list-style:none}
+.alerts li{font-size:14px;padding:8px 10px;border-radius:8px;background:var(--chip);margin-top:6px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.msg{min-height:22px;font-size:14px;margin:8px 0 0}
+.list details{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--card)}
+.list summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center}
+.list summary::-webkit-details-marker{display:none}
+.list .body{padding:0 16px 16px}
+.r{text-align:right;white-space:nowrap}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--chip);white-space:nowrap;margin-left:6px}
+.chip.ok{background:var(--field);color:var(--fink);border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-size:13px;color:var(--mute);font-weight:600}
+tfoot td{font-weight:700;border-bottom:0}
+.scroll{overflow-x:auto}
+.hide{display:none!important}
+.login{max-width:420px;margin:0 auto}.login h2{font:700 26px "Space Grotesk",sans-serif;margin:0 0 6px}.who{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;font-size:14px}.who button{min-height:36px;background:transparent;color:var(--fink);border-color:currentColor}
+.notice{padding:12px 14px;border-radius:10px;background:var(--chip);font-size:14px;margin-bottom:16px}
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
+.sumrow div{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sumrow b{display:block;font:700 clamp(20px,5vw,26px) "Space Grotesk",sans-serif;white-space:nowrap}
+pre{white-space:pre-wrap;background:var(--chip);padding:12px;border-radius:10px;font:14px/1.5 Inter,sans-serif}
+@media(prefers-reduced-motion:no-preference){.ticket{transition:box-shadow .3s}.ticket.flash{box-shadow:0 0 0 3px #3fbf7f}}
+</style>
+</head>
+<body>
+<header class="band top"><div class="wrap">
+  <h1>Cash point · Airtel · Telma · Orange</h1>
+  <div class="row" id="topRow">
+    <div><small>Capital actuel</small><div class="big" id="capNow">—</div><small id="capDate">Chargement…</small></div>
+    <div class="kp" id="kpMonth"></div>
+  </div>
+  <div class="who hide" id="who"><span id="whoTxt"></span><button id="logout" type="button">Se déconnecter</button></div>
+</div></header>
+<section class="band hide" id="v-login"><form class="login" id="loginForm" novalidate>
+  <h2>Connexion</h2>
+  <p class="mute">Entre l’e-mail et le mot de passe donnés par le propriétaire.</p>
+  <label>E-mail<input type="email" id="l-email" autocomplete="username" required></label>
+  <label style="margin-top:12px">Mot de passe<input type="password" id="l-pass" autocomplete="current-password" required></label>
+  <div class="actions" style="margin-top:16px"><button class="pri" type="submit" id="l-btn">Se connecter</button><button type="button" id="l-reset">Mot de passe oublié</button></div>
+  <p class="msg" id="l-msg" role="status"></p>
+</form></section>
+<div id="app" class="hide">
+<nav aria-label="Sections">
+  <button id="t-saisie" aria-pressed="true">Nouveau rapport</button>
+  <button id="t-hist" aria-pressed="false">Historique</button>
+  <button id="t-mois" aria-pressed="false">Bonus du mois</button>
+</nav>
+<main class="band"><div class="wrap">
+  <div id="notice" class="notice hide" role="status"></div>
+  <section id="v-saisie">
+    <div class="grid">
+      <form id="form" novalidate>
+        <fieldset><legend>Date du rapport (alahady)</legend>
+          <div class="f"><label>Date<input type="date" id="f-date"></label></div>
+          <p class="msg warn" id="dateMsg"></p>
+        </fieldset>
+        <fieldset><legend>1. Soldes et cash, comptés avant de payer le vendeur</legend>
+          <div class="f">
+            <label><span class="dot" style="background:#e40000"></span>Airtel<input class="n" id="f-airtel" inputmode="numeric" autocomplete="off"></label>
+            <label><span class="dot" style="background:#ffcc00"></span>Telma MVola<input class="n" id="f-telma" inputmode="numeric" autocomplete="off"></label>
+            <label><span class="dot" style="background:#ff7900"></span>Orange<input class="n" id="f-orange" inputmode="numeric" autocomplete="off"></label>
+            <label>Cash (vola an-tanana)<input class="n" id="f-cash" inputmode="numeric" autocomplete="off"></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>2. Bonus et frais de la semaine</legend>
+          <div class="f">
+            <label>Bonus (D)<input class="n" id="f-bonus" inputmode="numeric" autocomplete="off"></label>
+            <label>Frais (E)<input class="n" id="f-frais" inputmode="numeric" autocomplete="off"></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>3. Mouvements de capital, si besoin</legend>
+          <div class="f">
+            <label>Sorties (retrait, arriérés…)<input class="n" id="f-sorties" inputmode="numeric" autocomplete="off"></label>
+            <label>Apport (capital ajouté)<input class="n" id="f-apport" inputmode="numeric" autocomplete="off"></label>
+            <label>Motif<input id="f-motif" maxlength="160" autocomplete="off"></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>4. Capital de départ</legend>
+          <div class="f"><label>Capital teo (I)<input class="n" id="f-cap" inputmode="numeric" autocomplete="off" readonly></label></div>
+          <p class="mute" id="capHint"></p>
+        </fieldset>
+        <fieldset><legend>Note</legend><textarea id="f-note" rows="2" maxlength="300"></textarea></fieldset>
+        <div class="actions"><button type="submit" class="pri" id="save">Envoyer le rapport</button><button type="button" id="reset">Effacer</button></div>
+        <p class="msg" id="saveMsg" role="status"></p>
+      </form>
+      <aside class="ticket" id="ticket" aria-live="polite"></aside>
+    </div>
+  </section>
+  <section id="v-hist" class="hide"><div class="list" id="list"></div></section>
+  <section id="v-mois" class="hide">
+    <label style="max-width:260px">Mois<select id="m-sel"></select></label>
+    <div class="sumrow" id="m-sum"></div>
+    <div class="scroll" id="m-table"></div>
+    <div class="actions"><button class="pri" id="m-copy">Copier le message pour le vendeur</button></div>
+    <p class="msg" id="m-msg" role="status"></p>
+    <pre id="m-pre"></pre>
+  </section>
+</div></main>
+</div>
+<div class="band hide" id="v-boot"><div class="wrap"><div id="bootMsg" class="notice"></div></div></div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
